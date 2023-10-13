@@ -135,6 +135,16 @@ pub trait Field:
     /// If the slice length != Self::extension_degree(), must return None.
     fn from_base_prime_field_elems(elems: &[Self::BasePrimeField]) -> Option<Self>;
 
+    /// Return the raw memory of the element
+    fn into_raw_memory(&self) -> &[u64] {
+        unimplemented!()
+    }
+
+    /// Build the element from raw memory (i.e., without Montgomery transform)
+    fn from_raw_memory(_mem: &[u64]) -> Self {
+        unimplemented!()
+    }
+
     /// Returns `self + self`.
     #[must_use]
     fn double(&self) -> Self;

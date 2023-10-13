@@ -633,65 +633,73 @@ impl<'a, P: Parameters> Add<&'a Self> for GroupProjective<P> {
 
 impl<'a, P: Parameters> AddAssign<&'a Self> for GroupProjective<P> {
     fn add_assign(&mut self, other: &'a Self) {
-        if self.is_zero() {
-            *self = *other;
-            return;
+        #[cfg(feature = "hardware")]
+        {
+            use super::utils::hardware_point_add;
+            *self = hardware_point_add(&self, other)
         }
+        #[cfg(not(feature = "hardware"))]
+        {
+            if self.is_zero() {
+                *self = *other;
+                return;
+            }
 
-        if other.is_zero() {
-            return;
-        }
+            if other.is_zero() {
+                return;
+            }
 
-        // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-add-2007-bl
-        // Works for all curves.
+            // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-add-2007-bl
+            // Works for all curves.
 
-        // Z1Z1 = Z1^2
-        let z1z1 = self.z.square();
+            // Z1Z1 = Z1^2
+            let z1z1 = self.z.square();
 
-        // Z2Z2 = Z2^2
-        let z2z2 = other.z.square();
+            // Z2Z2 = Z2^2
+            let z2z2 = other.z.square();
 
-        // U1 = X1*Z2Z2
-        let u1 = self.x * &z2z2;
+            // U1 = X1*Z2Z2
+            let u1 = self.x * &z2z2;
 
-        // U2 = X2*Z1Z1
-        let u2 = other.x * &z1z1;
+            // U2 = X2*Z1Z1
+            let u2 = other.x * &z1z1;
 
-        // S1 = Y1*Z2*Z2Z2
-        let s1 = self.y * &other.z * &z2z2;
+            // S1 = Y1*Z2*Z2Z2
+            let s1 = self.y * &other.z * &z2z2;
 
-        // S2 = Y2*Z1*Z1Z1
-        let s2 = other.y * &self.z * &z1z1;
+            // S2 = Y2*Z1*Z1Z1
+            let s2 = other.y * &self.z * &z1z1;
 
-        if u1 == u2 && s1 == s2 {
-            // The two points are equal, so we double.
-            self.double_in_place();
-        } else {
-            // If we're adding -a and a together, self.z becomes zero as H becomes zero.
+            if u1 == u2 && s1 == s2 {
+                // The two points are equal, so we double.
+                self.double_in_place();
+            } else {
+                // If we're adding -a and a together, self.z becomes zero as H becomes zero.
 
-            // H = U2-U1
-            let h = u2 - &u1;
+                // H = U2-U1
+                let h = u2 - &u1;
 
-            // I = (2*H)^2
-            let i = (h.double()).square();
+                // I = (2*H)^2
+                let i = (h.double()).square();
 
-            // J = H*I
-            let j = h * &i;
+                // J = H*I
+                let j = h * &i;
 
-            // r = 2*(S2-S1)
-            let r = (s2 - &s1).double();
+                // r = 2*(S2-S1)
+                let r = (s2 - &s1).double();
 
-            // V = U1*I
-            let v = u1 * &i;
+                // V = U1*I
+                let v = u1 * &i;
 
-            // X3 = r^2 - J - 2*V
-            self.x = r.square() - &j - &(v.double());
+                // X3 = r^2 - J - 2*V
+                self.x = r.square() - &j - &(v.double());
 
-            // Y3 = r*(V - X3) - 2*S1*J
-            self.y = r * &(v - &self.x) - &*(s1 * &j).double_in_place();
+                // Y3 = r*(V - X3) - 2*S1*J
+                self.y = r * &(v - &self.x) - &*(s1 * &j).double_in_place();
 
-            // Z3 = ((Z1+Z2)^2 - Z1Z1 - Z2Z2)*H
-            self.z = ((self.z + &other.z).square() - &z1z1 - &z2z2) * &h;
+                // Z3 = ((Z1+Z2)^2 - Z1Z1 - Z2Z2)*H
+                self.z = ((self.z + &other.z).square() - &z1z1 - &z2z2) * &h;
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 use ark_std::{
     cmp::{Ord, Ordering, PartialOrd},
+    convert::TryInto,
     fmt::{Display, Formatter, Result as FmtResult},
     io::{Read, Result as IoResult, Write},
     marker::PhantomData,

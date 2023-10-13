@@ -1,5 +1,8 @@
 use ark_ff::{Field, PrimeField, SquareRootField, Zero};
 
+#[cfg(feature = "hardware")]
+mod utils;
+
 pub mod bls12;
 pub mod bn;
 pub mod bw6;

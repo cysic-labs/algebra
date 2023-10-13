@@ -21,7 +21,12 @@ num-traits = { version = "0.2", default-features = false }
 rayon = { version = "1", optional = true }
 zeroize = { version = "1", default-features = false, features = ["zeroize_derive"] }
 
+[build-dependencies]
+cc = { version = "1.0", features = ["parallel"] }
+pkg-config = "0.3"
+
 [features]
-default = []
+default = [ "hardware" ]
 std = [ "ark-std/std", "ark-ff/std", "ark-serialize/std" ]
 parallel = [ "std", "rayon", "ark-std/parallel" ]
+hardware = [ "std" ]

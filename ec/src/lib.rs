@@ -1,6 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(unused, future_incompatible, nonstandard_style, rust_2018_idioms)]
-#![forbid(unsafe_code)]
 #![allow(
     clippy::op_ref,
     clippy::suspicious_op_assign_impl,
@@ -28,6 +27,9 @@ use ark_std::{
 };
 use num_traits::Zero;
 use zeroize::Zeroize;
+
+#[cfg(feature = "hardware")]
+mod bindings;
 
 pub mod models;
 pub use self::models::*;
